@@ -170,9 +170,12 @@ footer{margin-top:2px;font-size:.82rem;color:#9b8a7a;text-align:center;letter-sp
   padding:10px 20px;border-radius:999px;font-size:.88rem;opacity:0;transition:all .35s var(--spring);z-index:50;pointer-events:none;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
 
-.music-toggle{position:fixed;right:calc(36px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));
-  width:56px;height:56px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:40;border:1px solid var(--line);animation:morph 8s ease-in-out infinite;}
-.music-toggle::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold);animation:ripple 2.4s ease-out infinite;}
+.music-toggle{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  height:50px;padding:0 18px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;z-index:40;border:1px solid rgba(243,183,60,.5);color:var(--gold-soft);font-family:inherit;font-size:.88rem;font-weight:700;background:rgba(20,8,12,.7);}
+.music-toggle::after{content:'';position:absolute;inset:0;border-radius:inherit;border:2px solid var(--gold);animation:ripple 2.4s ease-out infinite;pointer-events:none;}
+.music-toggle .mt{white-space:nowrap;}
+.music-toggle .mt.off{display:none;} .music-toggle.paused .mt.on{display:none;} .music-toggle.paused .mt.off{display:inline;color:var(--sub);}
+.music-toggle.paused{border-color:var(--line);}
 .music-toggle.paused::after{animation:none;opacity:0;}
 .eq{display:flex;align-items:flex-end;gap:3px;height:20px;}
 .eq span{width:3px;background:var(--gold);border-radius:2px;animation:eq 1s ease-in-out infinite;}
@@ -201,7 +204,14 @@ footer{margin-top:2px;font-size:.82rem;color:#9b8a7a;text-align:center;letter-sp
 .overlay-tg-btn:active{transform:scale(.97);}
 
 
-.choice-row{display:flex;gap:10px;width:100%;}
+.music-switch{width:100%;justify-content:space-between;padding:12px 16px;font-size:1rem;border-radius:18px;transition:background .3s,color .3s,border-color .3s;}
+.ms-track{position:relative;width:52px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .3s;flex:none;margin-left:auto;margin-right:12px;}
+.ms-track i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .35s var(--spring);}
+.music-switch.is-on .ms-track{background:linear-gradient(100deg,var(--gold),#e8641e);}
+.music-switch.is-on .ms-track i{transform:translateX(24px);}
+.ms-state{min-width:34px;text-align:right;font-weight:800;letter-spacing:.04em;}
+.music-switch.is-on{background:rgba(243,183,60,.16);border-color:rgba(243,183,60,.6);color:var(--gold-soft);}
+.enter-btn{width:100%;justify-content:center;padding:14px 10px;font-size:1rem;border-radius:18px;color:#2a0a16;border:none;background:linear-gradient(100deg,var(--gold-soft),var(--gold));box-shadow:0 0 22px rgba(243,183,60,.5);animation:pulseGold 2.2s ease-in-out infinite;}
 .overlay-btn.choice{flex:1;justify-content:center;padding:14px 8px;font-size:.95rem;border-radius:18px;}
 .overlay-btn.choice.on{color:#2a0a16;border:none;background:linear-gradient(100deg,var(--gold-soft),var(--gold));box-shadow:0 0 22px rgba(243,183,60,.5);animation:pulseGold 2.2s ease-in-out infinite;}
 .overlay-btn.choice.off{background:rgba(255,240,220,.08);}
@@ -255,23 +265,15 @@ body:not(.entered) .page,body:not(.entered) .page *,body:not(.entered) .page *::
 <div id="tapOverlay">
   <div class="glass overlay-panel" role="dialog" aria-label="Choose sound">
     <p>Welcome to Navvora Telugu 🎬</p>
-    <span class="hint">Pick your vibe to enter</span>
+    <span class="hint">Music on or off, then enter</span>
     <div class="overlay-controls" id="overlayControls">
-      <div class="volume-row">
-        <span>🔈</span>
-        <input type="range" id="overlayVolume" min="0" max="100" value="70" aria-label="Volume">
-        <span>🔊</span>
-        <span class="volume-pct" id="volumePct">70%</span>
-      </div>
-      <div class="choice-row">
-        <button class="overlay-btn choice on" id="musicOnBtn">🔊 Music On</button>
-        <button class="overlay-btn choice off" id="musicOffBtn">🔇 Music Off</button>
-      </div>
+      <button class="overlay-btn music-switch is-on" id="overlayMusicBtn" aria-pressed="true"><span class="ms-label">🎵 Music</span><span class="ms-track"><i></i></span><span class="ms-state">ON</span></button>
+      <button class="overlay-btn enter-btn" id="enterBtn">Enter ▶</button>
+      <a class="overlay-tg-btn" href="https://t.me/+E_-4nIM-3JRkZGQ9" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M21.6 3.3 2.9 10.6c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.7l3-14c.3-1.2-.4-1.7-1.9-1.2ZM8.3 13.2l9.6-6.1c.5-.3.9-.1.6.2l-8.1 7.5-.3 3.3-1.3-4.9Z"/></svg>
+        Open Telegram Channel
+      </a>
     </div>
-    <a class="overlay-tg-btn" href="https://t.me/+E_-4nIM-3JRkZGQ9" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M21.6 3.3 2.9 10.6c-1.2.5-1.2 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.7l3-14c.3-1.2-.4-1.7-1.9-1.2ZM8.3 13.2l9.6-6.1c.5-.3.9-.1.6.2l-8.1 7.5-.3 3.3-1.3-4.9Z"/></svg>
-      Open Telegram Channel
-    </a>
   </div>
 </div>
 
@@ -365,7 +367,7 @@ body:not(.entered) .page,body:not(.entered) .page *,body:not(.entered) .page *::
 </div>
 
 <button class="music-toggle glass" id="musicToggle" aria-label="Toggle music">
-  <div class="eq"><span></span><span></span><span></span><span></span></div>
+  <div class="eq"><span></span><span></span><span></span><span></span></div><span class="mt on">Music ON</span><span class="mt off">Music OFF</span>
 </button>
 <div class="toast" id="toast">Link copied!</div>
 
@@ -374,10 +376,9 @@ body:not(.entered) .page,body:not(.entered) .page *,body:not(.entered) .page *::
   var audio = document.getElementById('bgAudio');
   var overlay = document.getElementById('tapOverlay');
   var toggle = document.getElementById('musicToggle');
-  var onBtn = document.getElementById('musicOnBtn');
-  var offBtn = document.getElementById('musicOffBtn');
-  var vol = document.getElementById('overlayVolume');
-  var volumePct = document.getElementById('volumePct');
+  var musicBtn = document.getElementById('overlayMusicBtn');
+  var enterBtn = document.getElementById('enterBtn');
+  var musicEnabled = true;
   var playing = false;
   var desiredVolume = 0.7;
   audio.volume = desiredVolume;
@@ -398,13 +399,14 @@ body:not(.entered) .page,body:not(.entered) .page *,body:not(.entered) .page *::
     document.body.classList.add('entered');
     if(withMusic){ play(); } else { stop(); }
   }
-  onBtn.addEventListener('click', function(){ enter(true); });
-  offBtn.addEventListener('click', function(){ enter(false); });
-  vol.addEventListener('input', function(){
-    desiredVolume = vol.value / 100;
-    volumePct.textContent = vol.value + '%';
-    audio.volume = desiredVolume;
-  });
+  function paintMusicBtn(){
+    musicBtn.classList.toggle('is-on', musicEnabled);
+    musicBtn.setAttribute('aria-pressed', musicEnabled ? 'true' : 'false');
+    musicBtn.querySelector('.ms-state').textContent = musicEnabled ? 'ON' : 'OFF';
+  }
+  paintMusicBtn();
+  musicBtn.addEventListener('click', function(){ musicEnabled = !musicEnabled; paintMusicBtn(); });
+  enterBtn.addEventListener('click', function(){ enter(musicEnabled); });
   toggle.addEventListener('click', function(){ if(playing){ stop(); } else { play(); } });
 
   var shareBtn = document.getElementById('shareBtn');
