@@ -200,6 +200,16 @@ footer{margin-top:2px;font-size:.82rem;color:#9b8a7a;text-align:center;letter-sp
 .overlay-tg-btn svg{width:18px;height:18px;fill:#fff;flex:none;}
 .overlay-tg-btn:active{transform:scale(.97);}
 
+
+.choice-row{display:flex;gap:10px;width:100%;}
+.overlay-btn.choice{flex:1;justify-content:center;padding:14px 8px;font-size:.95rem;border-radius:18px;}
+.overlay-btn.choice.on{color:#2a0a16;border:none;background:linear-gradient(100deg,var(--gold-soft),var(--gold));box-shadow:0 0 22px rgba(243,183,60,.5);animation:pulseGold 2.2s ease-in-out infinite;}
+.overlay-btn.choice.off{background:rgba(255,240,220,.08);}
+.overlay-btn.choice:hover{filter:brightness(1.1);}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 14px rgba(243,183,60,.35);}50%{box-shadow:0 0 32px rgba(243,183,60,.75);}}
+/* page animations wait until the visitor enters */
+body:not(.entered) .page,body:not(.entered) .page *,body:not(.entered) .page *::before,body:not(.entered) .page *::after{animation-play-state:paused !important;}
+
 /* ===== keyframes ===== */
 @keyframes morph{0%,100%{border-radius:50% 50% 50% 50% / 50% 50% 50% 50%;}25%{border-radius:62% 38% 55% 45% / 48% 60% 40% 52%;}50%{border-radius:42% 58% 38% 62% / 58% 42% 58% 42%;}75%{border-radius:55% 45% 63% 37% / 40% 55% 45% 60%;}}
 @keyframes morphPill{0%,100%{border-radius:999px;}33%{border-radius:30px 999px 26px 999px;}66%{border-radius:999px 24px 999px 30px;}}
@@ -243,16 +253,19 @@ footer{margin-top:2px;font-size:.82rem;color:#9b8a7a;text-align:center;letter-sp
 <body>
 
 <div id="tapOverlay">
-  <div class="glass overlay-panel">
-    <p>Tap anywhere for the TFI Vibe 🎬</p>
-    <span class="hint">Sound will start automatically</span>
+  <div class="glass overlay-panel" role="dialog" aria-label="Choose sound">
+    <p>Welcome to Navvora Telugu 🎬</p>
+    <span class="hint">Pick your vibe to enter</span>
     <div class="overlay-controls" id="overlayControls">
-      <button class="overlay-btn" id="overlayMusicBtn">🔊 Music: On</button>
       <div class="volume-row">
         <span>🔈</span>
         <input type="range" id="overlayVolume" min="0" max="100" value="70" aria-label="Volume">
         <span>🔊</span>
         <span class="volume-pct" id="volumePct">70%</span>
+      </div>
+      <div class="choice-row">
+        <button class="overlay-btn choice on" id="musicOnBtn">🔊 Music On</button>
+        <button class="overlay-btn choice off" id="musicOffBtn">🔇 Music Off</button>
       </div>
     </div>
     <a class="overlay-tg-btn" href="https://t.me/+E_-4nIM-3JRkZGQ9" target="_blank" rel="noopener">
@@ -361,64 +374,38 @@ footer{margin-top:2px;font-size:.82rem;color:#9b8a7a;text-align:center;letter-sp
   var audio = document.getElementById('bgAudio');
   var overlay = document.getElementById('tapOverlay');
   var toggle = document.getElementById('musicToggle');
-  var overlayBtn = document.getElementById('overlayMusicBtn');
-  var overlayVol = document.getElementById('overlayVolume');
+  var onBtn = document.getElementById('musicOnBtn');
+  var offBtn = document.getElementById('musicOffBtn');
+  var vol = document.getElementById('overlayVolume');
   var volumePct = document.getElementById('volumePct');
-  var overlayControls = document.getElementById('overlayControls');
   var playing = false;
-  var musicEnabled = true;
   var desiredVolume = 0.7;
-
   audio.volume = desiredVolume;
+  toggle.classList.add('paused');
 
-  function updateOverlayBtn(){
-    overlayBtn.textContent = musicEnabled ? '🔊 Music: On' : '🔇 Music: Off';
-  }
-
-  function startAudio(){
-    if(!musicEnabled){
-      audio.pause();
-      playing = false;
-      toggle.classList.add('paused');
-      return;
-    }
+  function play(){
     audio.muted = false;
     audio.volume = desiredVolume;
     var p = audio.play();
-    if(p && p.catch){ p.then(function(){playing=true;toggle.classList.remove('paused');}).catch(function(){playing=false;toggle.classList.add('paused');}); }
+    if(p && p.then){
+      p.then(function(){ playing = true; toggle.classList.remove('paused'); })
+       .catch(function(){ playing = false; toggle.classList.add('paused'); });
+    } else { playing = true; toggle.classList.remove('paused'); }
   }
-
-  overlayControls.addEventListener('click', function(e){ e.stopPropagation(); });
-  overlayControls.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
-
-  overlayBtn.addEventListener('click', function(){
-    musicEnabled = !musicEnabled;
-    updateOverlayBtn();
-    if(playing || audio.currentTime > 0){
-      if(musicEnabled){ startAudio(); } else { audio.pause(); playing=false; toggle.classList.add('paused'); }
-    }
-  });
-
-  overlayVol.addEventListener('input', function(){
-    desiredVolume = overlayVol.value / 100;
-    volumePct.textContent = overlayVol.value + '%';
-    audio.volume = desiredVolume;
-    if(desiredVolume > 0 && !musicEnabled){ musicEnabled = true; updateOverlayBtn(); startAudio(); }
-  });
-
-  function dismissOverlay(e){
-    if(e && e.target && e.target.closest && e.target.closest('#overlayControls')) return;
+  function stop(){ audio.pause(); playing = false; toggle.classList.add('paused'); }
+  function enter(withMusic){
     overlay.classList.add('hidden');
-    startAudio();
-    document.removeEventListener('click', dismissOverlay);
+    document.body.classList.add('entered');
+    if(withMusic){ play(); } else { stop(); }
   }
-  document.addEventListener('click', dismissOverlay);
-
-  toggle.addEventListener('click', function(e){
-    e.stopPropagation();
-    if(playing){ audio.pause(); playing=false; toggle.classList.add('paused'); }
-    else { musicEnabled = true; updateOverlayBtn(); startAudio(); overlay.classList.add('hidden'); }
+  onBtn.addEventListener('click', function(){ enter(true); });
+  offBtn.addEventListener('click', function(){ enter(false); });
+  vol.addEventListener('input', function(){
+    desiredVolume = vol.value / 100;
+    volumePct.textContent = vol.value + '%';
+    audio.volume = desiredVolume;
   });
+  toggle.addEventListener('click', function(){ if(playing){ stop(); } else { play(); } });
 
   var shareBtn = document.getElementById('shareBtn');
   var toast = document.getElementById('toast');
